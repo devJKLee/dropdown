@@ -1,0 +1,19 @@
+body{
+    background-color: #efefef;
+}
+
+
+
+/* 업로드 페이지 관련 */
+
+#logo {
+    position: relative;
+    width: 457px;
+    height: 46px;
+    margin: 30px auto;
+    transform: translateX(-20px);
+    background: url(../images/logo.png?v=1) center center no-repeat;
+}
+
+/* 다운로드 페이지 관련 */
+

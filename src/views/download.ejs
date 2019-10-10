@@ -1,0 +1,113 @@
+<html>
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+
+    <link rel="shortcut icon" href="./assets/images/logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="./assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./assets/bootstrap/css/bootstrap-grid.min.css">
+    <link rel="stylesheet" href="./assets/bootstrap/css/bootstrap-reboot.min.css">
+    <link rel="stylesheet" href="./assets/dropdown/css/style.css">
+    <link rel="stylesheet" href="./assets/theme/css/style.css">
+    <link rel="stylesheet" href="./assets/mobirise/css/mbr-additional.css" type="text/css">
+
+    <title>아이엠폼 파일 공유 시스템</title>
+
+</head>
+
+<body>
+<section class="menu cid-qTkzRZLJNu" once="menu" id="menu1-4">
+    <nav class="navbar navbar-expand beta-menu navbar-dropdown align-items-center navbar-fixed-top navbar-toggleable-sm">
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </button>
+        <div class="menu-logo">
+            <div class="navbar-brand">
+                <span class="navbar-logo"></span>
+                <span class="navbar-caption-wrap">
+                    <a class="navbar-caption text-white display-4" href="http://www.imform.co.kr/" target="_blank">
+                        IMFORM
+                    </a>
+                </span>
+            </div>
+        </div>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav nav-dropdown" data-app-modern-menu="true">
+                <li class="nav-item <%= buttonVisible %>">
+                    <a class="nav-link link text-white display-4" href="/zip?guid=<%= guid %>" target="_self">
+                        <img src="./assets/images/zip.png" alt="upload" width="25" height="25"
+                             style="margin-right: 10px; margin-bottom: 5px;">
+                        Download To Zip
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link link text-white display-4" href="/upload" target="_self">
+                        <img src="./assets/images/upload.png" alt="upload" width="25" height="25"
+                             style="margin-right: 10px; margin-bottom: 5px;">
+                        Upload Page
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</section>
+
+<section class="features18 popup-btn-cards cid-rbqbLB0s16" id="features18-a">
+    <div class="container">
+        <h2 class="mbr-section-title pb-3 align-center mbr-fonts-style display-2" style="margin-top: 20px;">
+            Imform File Share System
+        </h2>
+        <h3 class="mbr-section-subtitle display-5 align-center mbr-fonts-style mbr-light">
+            Please select the file you want to download
+        </h3>
+        <% for(var num = 0; num < fileList.length; num++) { %>
+        <% if(num == 0 || num % 4 == 0) { %>
+        <div class="media-container-row pt-5">
+            <% } %>
+            <div class="card p-3 col-12 col-md-6 col-lg-4">
+                <div class="card-wrapper">
+                    <div class="card-img">
+                        <div class="mbr-overlay"></div>
+                        <div class="mbr-section-btn text-center">
+                            <a href="/download/file/<%= fileList[num].id %>"
+                               class="btn btn-primary display-4">Download</a>
+                        </div>
+                        <img src="<%= fileList[num].thumbnailPath %>" alt="thumbnail">
+                    </div>
+                    <div class="card-box">
+                        <h4 class="card-title mbr-fonts-style display-7">
+                            <%= fileList[num].originalname %>
+                        </h4>
+                    </div>
+                </div>
+            </div>
+            <% if(num % 4 == 3 || num == fileList.length) { %>
+        </div>
+        <% } %>
+        <% } %>
+    </div>
+</section>
+
+<script type="text/javascript" src="./assets/web/assets/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="./assets/popper/popper.min.js"></script>
+<script type="text/javascript" src="./assets/tether/tether.min.js"></script>
+<script type="text/javascript" src="./assets/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="./assets/smoothscroll/smooth-scroll.js"></script>
+<script type="text/javascript" src="./assets/dropdown/js/script.min.js"></script>
+<script type="text/javascript" src="./assets/touchswipe/jquery.touch-swipe.min.js"></script>
+<script type="text/javascript" src="./assets/mbr-popup-btns/mbr-popup-btns.js"></script>
+<script type="text/javascript" src="./assets/theme/js/script.js"></script>
+
+</body>
+
+</html>
