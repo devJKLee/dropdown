@@ -3,7 +3,6 @@
  * date: 2018-12-10
  */
 
-import {FileVO} from "../../VO/FileVO";
 import * as express from 'express';
 import {BinaryData, existsSync, readFileSync} from "fs";
 import {Path} from "../../config/Path";
@@ -51,11 +50,27 @@ export class FileDownloadController
      */
     private static getFileListComplete(res:express.Response, results:any, guid:string): void
     {
-        let fileList: Array<FileDB> = results as Array<FileDB>;
+        let fileList: Array<FileDB> = this.downloadFileDataProcessing(results);
         this.checkThumbnail(fileList);
         let zipButtonVisible:string = "";
         if(this.getTotalFileSize(fileList) > this.zipMaxSize) zipButtonVisible = "hidden";
         res.render('download', {fileList: fileList, guid: guid, buttonVisible:zipButtonVisible});
+    }
+
+    /**
+     * 다운로드 페이지에 사용될 파일을 Array<FileDB> 형태로 가공한다.
+     * @param results
+     * @returns {Array<FileDB>}
+     */
+    private static downloadFileDataProcessing(results:any):Array<FileDB>
+    {
+        let downloadData: Array<FileDB> = [];
+        for(var num = 0; num < results.length; num++)
+        {
+            var data:FileDB = results[num].dataValues as FileDB;
+            downloadData.push(data);
+        }
+        return downloadData;
     }
 
     /**
@@ -67,7 +82,7 @@ export class FileDownloadController
     {
         let id: number = req.params.id;
         let queryResults = FileDB.findOne({where:{is_deleted:false, id:id}});
-        queryResults.then((results:any)=>{ this.fileDownloadComplete(res, results); });
+        queryResults.then((results:any)=>{ this.fileDownloadComplete(res, results.dataValues); });
         queryResults.catch((error:any)=>{ this.sendResponseError(req, res, error); });
     }
 
@@ -78,7 +93,7 @@ export class FileDownloadController
      */
     private static fileDownloadComplete(res:express.Response, results: any): void
     {
-        let downloadFile: FileDB = results[0] as FileDB;
+        let downloadFile: FileDB = results as FileDB;
         res.download(downloadFile.path, downloadFile.originalname);
     }
 
@@ -91,7 +106,7 @@ export class FileDownloadController
         for(let num = 0; num < fileList.length; num++)
         {
             //썸네일 존재유무 확인
-            if(existsSync(Path.THUMBNAILPATH + "/" + fileList[num].filename + ".png")) fileList[num].thumbnailpath = "./thumbnail/" + fileList[num].filename + ".png";
+            if(existsSync(Path.THUMBNAILPATH + "/" + fileList[num].filename)) fileList[num].thumbnailpath = "./thumbnail/" + fileList[num].filename;
             else fileList[num].thumbnailpath = Path.DEFAULTTHUMBNAIL;
         }
     }
