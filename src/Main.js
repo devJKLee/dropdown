@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
 const http = require("http");
 const path = require("path");
-const logger = require("morgan");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const errorHandler = require("errorhandler");
@@ -34,8 +33,6 @@ class Server {
         Server.app.set('view engine', 'ejs');
         //뷰 페이지 경로 설정
         Server.app.set('views', path.join(__dirname, './views'));
-        //morgan 로그
-        Server.app.use(logger('short'));
         //Request 에 자동으로 body 속성 추가 및 인코딩, extended 는 중첩된 객체 표현 허용 여부
         Server.app.use(bodyParser.urlencoded({ extended: true }));
         Server.app.use(bodyParser.json());
@@ -49,6 +46,8 @@ class Server {
             resave: false,
             saveUninitialized: true
         }));
+        //DB 용 클래스
+        Service_1.Service.init();
         //multer 초기화
         MulterController_1.MulterController.init(Path_1.Path.UPLOADPATH);
         //thumbnail 초기화
@@ -57,8 +56,6 @@ class Server {
         new FileUploadController_1.FileUploadController();
         //파일 다운로드 컨트롤러 초기화
         new FileDownloadController_1.FileDownloadController();
-        //DB 용 클래스
-        Service_1.Service.init();
         //라우터 초기화
         this.route = new Route_1.Route();
     }
