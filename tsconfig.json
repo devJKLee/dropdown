@@ -6,8 +6,9 @@
     "module": "commonjs",
     "allowJs": true,
     /* Generates corresponding '.map' file. */
-    "sourceMap": true
-    /* Enable all strict type-checking options. */
+    "sourceMap": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "exclude": [
     "node_modules"
