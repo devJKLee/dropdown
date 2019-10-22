@@ -3,19 +3,33 @@
  * date: 2018-12-10
  */
 
-import {MysqlError} from "mysql";
 import {FileVO} from "../../VO/FileVO";
-import {Service} from "../../service/Service";
-import {Query} from "../../service/Query";
 import * as express from 'express';
 import {BinaryData, existsSync, readFileSync} from "fs";
 import {Path} from "../../config/Path";
 import * as nodezip from 'node-zip';
+import {WinstonLogger} from "../../log/WinstonLogger";
+import {FileDB} from "../../models/FileDB";
 
-export class FileDownloadController {
+export class FileDownloadController
+{
 
     // 단위 (Mb)
     private static readonly zipMaxSize:number = 100;
+
+    /**
+     * DB 커넥션 과정에서 에러가 발생했을 시, 로그를 남기고 에러 처리한다.
+     * 만약, ajax 를 통한 통신 요청이었다면, 500 error 를 반환하고,
+     * 관리자 페이지 내에서 발생한 에러라면 404 error 처리한다.
+     * @param error
+     * @param {e.Response} res
+     */
+    private static sendResponseError(req:express.Request, res:express.Response, error:any):void
+    {
+        WinstonLogger.error(error);
+        if(req.xhr) res.status(500).send({status:500, message:'internal error', type:'internal'});
+        else res.render('404');
+    }
 
     /**
      * 다운로드 페이지 요청이 들어온 경우, GUID 값으로 DB 에서 해당 파일의 데이터를 가져온다.
@@ -24,8 +38,10 @@ export class FileDownloadController {
      */
     public static getFileList(req:express.Request, res:express.Response): void
     {
-        let guid: string = req.query.guid;
-        Service.queryExecution(Query.GETFILELIST, guid, (err: MysqlError, results: any) => { if(err) throw err; this.getFileListComplete(res, results, guid); });
+        let guid:string = req.query.guid;
+        let queryResults = FileDB.findAll({where:{is_deleted:false, guid:guid}});
+        queryResults.then((results:any)=>{ this.getFileListComplete(res, results, guid); });
+        queryResults.catch((error:any)=>{ this.sendResponseError(req, res, error); });
     }
 
     /**
@@ -35,7 +51,7 @@ export class FileDownloadController {
      */
     private static getFileListComplete(res:express.Response, results:any, guid:string): void
     {
-        let fileList: Array<FileVO> = results as Array<FileVO>;
+        let fileList: Array<FileDB> = results as Array<FileDB>;
         this.checkThumbnail(fileList);
         let zipButtonVisible:string = "";
         if(this.getTotalFileSize(fileList) > this.zipMaxSize) zipButtonVisible = "hidden";
@@ -50,7 +66,9 @@ export class FileDownloadController {
     public static fileDownload(req:express.Request, res:express.Response): void
     {
         let id: number = req.params.id;
-        Service.queryExecution(Query.GETFILEONE, id, (err: MysqlError, results: any) => { this.fileDownloadComplete(res, results); });
+        let queryResults = FileDB.findOne({where:{is_deleted:false, id:id}});
+        queryResults.then((results:any)=>{ this.fileDownloadComplete(res, results); });
+        queryResults.catch((error:any)=>{ this.sendResponseError(req, res, error); });
     }
 
     /**
@@ -60,21 +78,21 @@ export class FileDownloadController {
      */
     private static fileDownloadComplete(res:express.Response, results: any): void
     {
-        let downloadFIle: FileVO = results[0] as FileVO;
-        res.download(downloadFIle.path, downloadFIle.originalname);
+        let downloadFile: FileDB = results[0] as FileDB;
+        res.download(downloadFile.path, downloadFile.originalname);
     }
 
     /**
      * 썸네일 존재 유무 확인
      * @param {Array<FileVO>} fileList  사용자가 요청한 다운로드 파일 리스트
      */
-    private static checkThumbnail(fileList:Array<FileVO>):void
+    private static checkThumbnail(fileList:Array<FileDB>):void
     {
         for(let num = 0; num < fileList.length; num++)
         {
             //썸네일 존재유무 확인
-            if(existsSync(Path.THUMBNAILPATH + "/" + fileList[num].filename + ".png")) fileList[num].thumbnailPath = "./thumbnail/" + fileList[num].filename + ".png";
-            else fileList[num].thumbnailPath = Path.DEFAULTTHUMBNAIL;
+            if(existsSync(Path.THUMBNAILPATH + "/" + fileList[num].filename + ".png")) fileList[num].thumbnailpath = "./thumbnail/" + fileList[num].filename + ".png";
+            else fileList[num].thumbnailpath = Path.DEFAULTTHUMBNAIL;
         }
     }
 
@@ -86,7 +104,9 @@ export class FileDownloadController {
     public static getZipFile(req:express.Request, res:express.Response):void
     {
         let guid:string = req.query.guid;
-        Service.queryExecution(Query.GETFILELIST, guid, (err:MysqlError, results:any)=>{ this.getZipFileComplete(res, results); });
+        let queryResults = FileDB.findAll({where:{is_deleted:false, guid:guid}});
+        queryResults.then((results:any)=>{ this.getZipFileComplete(res, results); });
+        queryResults.catch((error:any)=>{ this.sendResponseError(req, res, error); });
     }
 
     /**
@@ -96,7 +116,7 @@ export class FileDownloadController {
      */
     private static getZipFileComplete(res:express.Response, results:any):void
     {
-        let fileList: Array<FileVO> = results as Array<FileVO>;
+        let fileList: Array<FileDB> = results as Array<FileDB>;
         let data:BinaryData = this.makeZipFile(fileList);
         res.contentType('application/zip');
         res.end(data, 'binary');
@@ -106,7 +126,7 @@ export class FileDownloadController {
      * zip 압축 파일 생성
      * @param {Array<FileVO>} fileList  파일 리스트
      */
-    private static makeZipFile(fileList:Array<FileVO>):BinaryData
+    private static makeZipFile(fileList:Array<FileDB>):BinaryData
     {
         let zip = new nodezip();
         for(let idx = 0; idx < fileList.length; idx++)
@@ -121,7 +141,7 @@ export class FileDownloadController {
      * @param {Array<FileVO>}   files 파일 리스트
      * @returns {number}        총 크기 (단위 Bytes)
      */
-    private static getTotalFileSize(files:Array<FileVO>):number
+    private static getTotalFileSize(files:Array<FileDB>):number
     {
         let sum:number = 0;
         for(let idx = 0; idx < files.length; idx++)
