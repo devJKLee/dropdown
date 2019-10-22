@@ -3,30 +3,35 @@
  * date: 2018-11-08
  */
 
-import * as mysql from "mysql";
-import * as dbConfig from "../config/database";
-import {queryCallback} from "mysql";
+import {Sequelize} from "sequelize-typescript";
+import {FileDB} from "../models/FileDB";
+import * as dbConfig from '../config/database';
+
 
 export class Service
 {
-    private static connection: mysql.Connection;
+    static sequelize:Sequelize;
 
     /**
-     * Db 커넥션 초기화
+     * 초기화
      */
-    public static init():void
+    static init():void
     {
-        Service.connection = mysql.createConnection(dbConfig);
+        this.sequelize = new Sequelize(dbConfig);
+        /**
+         * force:true 옵션은, 서버 시작시 등록된 모델링 전체를 삭제하고, 다시 만드는 옵션이다.
+         * 굉장히 위험한 옵션이므로 개발시, 꼭 필요한 경우에만 사용해야 한다.
+         */
+        // this.sequelize.sync({force:true});
+        this.sequelize.sync();
+        this.addModels();
     }
 
     /**
-     * 요청받은 쿼리문을 수행한다.
-     * @param {string} sql  요청받은 쿼리문
-     * @param sqlData       쿼리문에 사용될 데이터
-     * @param {queryCallback} resultCallback    결과물 쿼리 콜백
+     * 설정된 모델을 DB 에 초기화시킨다.
      */
-    public static queryExecution(sql:string, sqlData:any, resultCallback:queryCallback):void
+    static addModels():void
     {
-        Service.connection.query(sql, sqlData, resultCallback);
+        this.sequelize.addModels([FileDB]);
     }
 }
