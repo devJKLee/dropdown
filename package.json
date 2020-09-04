@@ -46,7 +46,7 @@
     "nodemon": "^1.18.8",
     "path": "^0.12.7",
     "reflect-metadata": "^0.1.13",
-    "sequelize": "^4.44.3",
+    "sequelize": "^5.15.1",
     "sequelize-typescript": "^0.6.11",
     "serve-static": "^1.13.2",
     "thumbnail": "^0.1.9",
